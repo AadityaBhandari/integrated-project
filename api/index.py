@@ -25,7 +25,7 @@ def get_llm_response(prompt: str, provider: str) -> str:
             "Content-Type": "application/json",
         }
         body = {
-            "model": "anthropic/claude-sonnet-4-5",
+            "model": "meta-llama/llama-3.3-70b-instruct:free",
             "messages": [{"role": "user", "content": prompt}],
         }
         r = httpx.post("https://openrouter.ai/api/v1/chat/completions", json=body, headers=headers, timeout=60)
