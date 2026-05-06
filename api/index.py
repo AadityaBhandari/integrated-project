@@ -18,7 +18,7 @@ def get_llm_response(prompt: str, provider: str) -> str:
             max_tokens=8192,
         )
         return resp.choices[0].message.content.strip()
-    elif provider == "claude":
+        elif provider == "claude":
         import httpx
         headers = {
             "Authorization": f"Bearer {os.environ['OPENROUTER_API_KEY']}",
@@ -30,14 +30,13 @@ def get_llm_response(prompt: str, provider: str) -> str:
         }
         r = httpx.post("https://openrouter.ai/api/v1/chat/completions", json=body, headers=headers, timeout=60)
         data = r.json()
-if "choices" in data:
-    return data["choices"][0]["message"]["content"].strip()
-elif "error" in data:
-    raise Exception(f"OpenRouter error: {data['error']}")
-else:
-    raise Exception(f"Unexpected response: {data}")
+        if "choices" in data:
+            return data["choices"][0]["message"]["content"].strip()
+        elif "error" in data:
+            raise Exception(f"OpenRouter error: {data['error']}")
+        else:
+            raise Exception(f"Unexpected response: {data}")
     return "No provider configured."
-
 
 def ddg_search(query: str, k: int = 6):
     import requests
