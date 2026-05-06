@@ -1,8 +1,0 @@
-beautifulsoup4
-requests
-trafilatura
-typing_extensions
-python-dotenv
-httpx
-google-generativeai
-groq
