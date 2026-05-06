@@ -18,7 +18,7 @@ def get_llm_response(prompt: str, provider: str) -> str:
             max_tokens=8192,
         )
         return resp.choices[0].message.content.strip()
-        elif provider == "claude":
+    elif provider == "claude":
         import httpx
         headers = {
             "Authorization": f"Bearer {os.environ['OPENROUTER_API_KEY']}",
@@ -37,6 +37,7 @@ def get_llm_response(prompt: str, provider: str) -> str:
         else:
             raise Exception(f"Unexpected response: {data}")
     return "No provider configured."
+
 
 def ddg_search(query: str, k: int = 6):
     import requests
