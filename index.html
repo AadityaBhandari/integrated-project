@@ -89,7 +89,7 @@ select:focus{border-color:#4F8EF7}
 </div>
 <script>
 const STEPS=[{key:"plan",icon:"📋",label:"Planning research queries"},{key:"search",icon:"🔍",label:"Searching the web"},{key:"fetch",icon:"📄",label:"Fetching & extracting content"},{key:"write",icon:"✍️",label:"Writing report with citations"}];
-const BADGES={gemini:{cls:"badge-gemini",txt:"🔵 GEMINI 2.0 FLASH"},groq:{cls:"badge-groq",txt:"🟠 GROQ LLAMA 3.3 70B"},claude:{cls:"badge-claude",txt:"🟤 CLAUDE SONNET"}};
+const BADGES={gemini:{cls:"badge-gemini",txt:"🟣 LLAMA 3.3 70B"},groq:{cls:"badge-groq",txt:"⚡ LLAMA 3.1 8B FAST"},claude:{cls:"badge-claude",txt:"🔵 DEEPSEEK R1"}};
 function updateBadge(){const p=document.getElementById("provider").value,b=document.getElementById("provider-badge");b.className="badge "+BADGES[p].cls;b.textContent=BADGES[p].txt;}
 function renderSteps(active){const wrap=document.getElementById("steps");wrap.innerHTML=STEPS.map(s=>{let cls="pending";if(s.key===active)cls="active";else if(STEPS.findIndex(x=>x.key===active)>STEPS.findIndex(x=>x.key===s.key))cls="done";return`<div class="step ${cls}"><span>${s.icon}</span><span>${s.label}${cls==="done"?" ✓":cls==="active"?"...":""}</span></div>`;}).join("");}
 function renderAllDone(){document.getElementById("steps").innerHTML=STEPS.map(s=>`<div class="step done"><span>${s.icon}</span><span>${s.label} ✓</span></div>`).join("");}
