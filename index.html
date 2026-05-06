@@ -41,6 +41,26 @@ select:focus{border-color:#4F8EF7}
 .stat{flex:1;min-width:100px;background:rgba(79,142,247,.06);border:1px solid rgba(79,142,247,.12);border-radius:12px;padding:1rem;text-align:center}
 .stat-val{font-size:1.7rem;font-weight:700;background:linear-gradient(135deg,#4F8EF7,#7C3AED);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .stat-lbl{font-size:.72rem;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+/* Metrics panel */
+.metrics-panel{margin:1rem 0}
+.metrics-title{font-size:.8rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:.75rem}
+.metrics-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem}
+.metric-card{border-radius:14px;padding:1rem 1.2rem;text-align:center;position:relative;overflow:hidden}
+.metric-card.fc{background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.2)}
+.metric-card.cp{background:rgba(79,142,247,.07);border:1px solid rgba(79,142,247,.2)}
+.metric-card.hr{background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.2)}
+.metric-val{font-size:1.9rem;font-weight:800;line-height:1}
+.metric-card.fc .metric-val{color:#10b981}
+.metric-card.cp .metric-val{color:#4F8EF7}
+.metric-card.hr .metric-val{color:#ef4444}
+.metric-name{font-size:.78rem;font-weight:600;margin-top:.3rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.8px}
+.metric-full{font-size:.68rem;color:#64748b;margin-top:.2rem}
+.metric-sub{font-size:.7rem;color:#475569;margin-top:.5rem}
+.metric-bar-bg{height:4px;background:rgba(255,255,255,.06);border-radius:4px;margin-top:.6rem;overflow:hidden}
+.metric-bar-fill{height:100%;border-radius:4px;transition:width .8s ease}
+.metric-card.fc .metric-bar-fill{background:#10b981}
+.metric-card.cp .metric-bar-fill{background:#4F8EF7}
+.metric-card.hr .metric-bar-fill{background:#ef4444}
 .report-wrap{background:rgba(15,23,42,.5);border:1px solid rgba(79,142,247,.1);border-radius:16px;padding:2rem;line-height:1.75;color:#cbd5e1}
 .report-wrap h1{color:#f1f5f9;font-size:1.7rem;border-bottom:2px solid rgba(79,142,247,.2);padding-bottom:.5rem;margin-bottom:1rem}
 .report-wrap h2{color:#e2e8f0;font-size:1.2rem;margin-top:1.8rem;margin-bottom:.5rem}
@@ -52,7 +72,7 @@ select:focus{border-color:#4F8EF7}
 .btn-dl{display:inline-block;background:rgba(16,185,129,.1);color:#10b981;border:1px solid rgba(16,185,129,.3);border-radius:10px;padding:.6rem 1.4rem;font-size:.9rem;font-weight:600;cursor:pointer;margin-top:1rem;transition:all .2s}
 .btn-dl:hover{background:rgba(16,185,129,.2)}
 .error-box{background:rgba(161,44,123,.08);border:1px solid rgba(161,44,123,.3);border-radius:12px;padding:1rem 1.2rem;color:#f87171;font-size:.88rem}
-@media(max-width:640px){.sidebar{display:none}.main{padding:1rem}}
+@media(max-width:640px){.sidebar{display:none}.main{padding:1rem}.metrics-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -62,12 +82,12 @@ select:focus{border-color:#4F8EF7}
     <div>
       <div class="sidebar-label">LLM Provider</div>
       <select id="provider" onchange="updateBadge()">
-        <option value="gemini">🟣 Llama 3.3 70B</option>
-        <option value="groq">⚡ Llama 3.1 8B (Fast)</option>
-        <option value="claude">🔵 DeepSeek R1</option>
+        <option value="gemini">🔵 Gemini 2.0 Flash</option>
+        <option value="groq">🟠 Groq (Llama 3.3 70B)</option>
+        <option value="claude">🟤 Claude Sonnet</option>
       </select>
     </div>
-    <div class="sidebar-footer">Powered by Groq · Llama · DeepSeek<br/>100% Free &amp; Open Source</div>
+    <div class="sidebar-footer">Powered by Gemini · Groq · Claude<br/>100% Free &amp; Open Source</div>
   </aside>
   <main class="main">
     <div class="hero">
@@ -75,7 +95,7 @@ select:focus{border-color:#4F8EF7}
       <p>Autonomous deep research &amp; report generation — powered by Gemini, Groq &amp; Claude</p>
     </div>
     <div class="card">
-      <span class="badge badge-gemini" id="provider-badge">🟣 LLAMA 3.3 70B</span>
+      <span class="badge badge-gemini" id="provider-badge">🔵 GEMINI 2.0 FLASH</span>
       <div class="input-label">🔎 Research Topic</div>
       <input class="topic-input" id="topic" type="text" placeholder="e.g., Quantum Computing, CRISPR Gene Editing, Future of AI..."/>
       <button class="btn-generate" id="gen-btn" onclick="generateReport()">🚀 Generate Research Report</button>
@@ -88,12 +108,76 @@ select:focus{border-color:#4F8EF7}
   </main>
 </div>
 <script>
-const STEPS=[{key:"plan",icon:"📋",label:"Planning research queries"},{key:"search",icon:"🔍",label:"Searching the web"},{key:"fetch",icon:"📄",label:"Fetching & extracting content"},{key:"write",icon:"✍️",label:"Writing report with citations"}];
-const BADGES={gemini:{cls:"badge-gemini",txt:"🟣 LLAMA 3.3 70B"},groq:{cls:"badge-groq",txt:"⚡ LLAMA 3.1 8B FAST"},claude:{cls:"badge-claude",txt:"🔵 DEEPSEEK R1"}};
-function updateBadge(){const p=document.getElementById("provider").value,b=document.getElementById("provider-badge");b.className="badge "+BADGES[p].cls;b.textContent=BADGES[p].txt;}
-function renderSteps(active){const wrap=document.getElementById("steps");wrap.innerHTML=STEPS.map(s=>{let cls="pending";if(s.key===active)cls="active";else if(STEPS.findIndex(x=>x.key===active)>STEPS.findIndex(x=>x.key===s.key))cls="done";return`<div class="step ${cls}"><span>${s.icon}</span><span>${s.label}${cls==="done"?" ✓":cls==="active"?"...":""}</span></div>`;}).join("");}
-function renderAllDone(){document.getElementById("steps").innerHTML=STEPS.map(s=>`<div class="step done"><span>${s.icon}</span><span>${s.label} ✓</span></div>`).join("");}
-function mdToHtml(md){return md.replace(/^### (.+)$/gm,"<h3>$1</h3>").replace(/^## (.+)$/gm,"<h2>$1</h2>").replace(/^# (.+)$/gm,"<h1>$1</h1>").replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>").replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2" target="_blank">$1</a>').replace(/^\s*[-*] (.+)$/gm,"<li>$1</li>").replace(/\n\n/g,"</p><p>").replace(/^(?!<[hul])/gm,"");}
+const STEPS=[
+  {key:"plan",icon:"📋",label:"Planning research queries"},
+  {key:"search",icon:"🔍",label:"Searching the web"},
+  {key:"fetch",icon:"📄",label:"Fetching & extracting content"},
+  {key:"write",icon:"✍️",label:"Writing report with citations"},
+  {key:"review",icon:"🔎",label:"Fact-checking & reviewing"}
+];
+const BADGES={
+  gemini:{cls:"badge-gemini",txt:"🔵 GEMINI 2.0 FLASH"},
+  groq:{cls:"badge-groq",txt:"🟠 GROQ LLAMA 3.3 70B"},
+  claude:{cls:"badge-claude",txt:"🟤 CLAUDE SONNET"}
+};
+function updateBadge(){
+  const p=document.getElementById("provider").value,b=document.getElementById("provider-badge");
+  b.className="badge "+BADGES[p].cls;b.textContent=BADGES[p].txt;
+}
+function renderSteps(active){
+  const wrap=document.getElementById("steps");
+  wrap.innerHTML=STEPS.map(s=>{
+    let cls="pending";
+    if(s.key===active)cls="active";
+    else if(STEPS.findIndex(x=>x.key===active)>STEPS.findIndex(x=>x.key===s.key))cls="done";
+    return`<div class="step ${cls}"><span>${s.icon}</span><span>${s.label}${cls==="done"?" ✓":cls==="active"?"...":""}</span></div>`;
+  }).join("");
+}
+function renderAllDone(){
+  document.getElementById("steps").innerHTML=STEPS.map(s=>`<div class="step done"><span>${s.icon}</span><span>${s.label} ✓</span></div>`).join("");
+}
+function mdToHtml(md){
+  return md
+    .replace(/^### (.+)$/gm,"<h3>$1</h3>")
+    .replace(/^## (.+)$/gm,"<h2>$1</h2>")
+    .replace(/^# (.+)$/gm,"<h1>$1</h1>")
+    .replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>")
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2" target="_blank">$1</a>')
+    .replace(/^\s*[-*] (.+)$/gm,"<li>$1</li>")
+    .replace(/\n\n/g,"</p><p>")
+    .replace(/^(?!<[hul])/gm,"");
+}
+function renderMetrics(m){
+  if(!m) return "";
+  const pct=v=>(v*100).toFixed(1)+"%";
+  return `
+  <div class="metrics-panel">
+    <div class="metrics-title">📊 Evaluation Metrics</div>
+    <div class="metrics-grid">
+      <div class="metric-card fc">
+        <div class="metric-val">${pct(m.factual_consistency)}</div>
+        <div class="metric-name">FC</div>
+        <div class="metric-full">Factual Consistency</div>
+        <div class="metric-sub">${m.sentences_supported} / ${m.sentences_total} sentences supported</div>
+        <div class="metric-bar-bg"><div class="metric-bar-fill" style="width:${pct(m.factual_consistency)}"></div></div>
+      </div>
+      <div class="metric-card cp">
+        <div class="metric-val">${pct(m.citation_precision)}</div>
+        <div class="metric-name">CP</div>
+        <div class="metric-full">Citation Precision</div>
+        <div class="metric-sub">${m.citations_correct} correct · ${m.citations_incorrect} incorrect</div>
+        <div class="metric-bar-bg"><div class="metric-bar-fill" style="width:${pct(m.citation_precision)}"></div></div>
+      </div>
+      <div class="metric-card hr">
+        <div class="metric-val">${pct(m.hallucination_rate)}</div>
+        <div class="metric-name">HR</div>
+        <div class="metric-full">Hallucination Rate</div>
+        <div class="metric-sub">${m.sentences_total - m.sentences_supported} / ${m.sentences_total} sentences unsupported</div>
+        <div class="metric-bar-bg"><div class="metric-bar-fill" style="width:${pct(m.hallucination_rate)}"></div></div>
+      </div>
+    </div>
+  </div>`;
+}
 async function generateReport(){
   const topic=document.getElementById("topic").value.trim();
   if(!topic)return;
@@ -107,18 +191,37 @@ async function generateReport(){
     const res=await fetch("/api/research",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({topic,provider})});
     clearInterval(timer);
     const data=await res.json();
-    if(!res.ok||data.error){renderAllDone();document.getElementById("result-area").innerHTML=`<div class="error-box">❌ ${data.error||"Unknown error"}</div>`;}
-    else{
+    if(!res.ok||data.error){
+      renderAllDone();
+      document.getElementById("result-area").innerHTML=`<div class="error-box">❌ ${data.error||"Unknown error"}</div>`;
+    } else {
       renderAllDone();
       const wc=data.word_count||data.report.split(" ").length,sc=(data.sources||[]).length;
-      document.getElementById("result-area").innerHTML=`<div class="stats"><div class="stat"><div class="stat-val">${sc}</div><div class="stat-lbl">Sources</div></div><div class="stat"><div class="stat-val">${wc.toLocaleString()}</div><div class="stat-lbl">Words</div></div><div class="stat"><div class="stat-val">${provider.charAt(0).toUpperCase()+provider.slice(1)}</div><div class="stat-lbl">Provider</div></div></div><div class="report-wrap" id="report-content">${mdToHtml(data.report)}</div><button class="btn-dl" onclick="downloadReport()">📥 Download Report (.md)</button>`;
+      document.getElementById("result-area").innerHTML=`
+        <div class="stats">
+          <div class="stat"><div class="stat-val">${sc}</div><div class="stat-lbl">Sources</div></div>
+          <div class="stat"><div class="stat-val">${wc.toLocaleString()}</div><div class="stat-lbl">Words</div></div>
+          <div class="stat"><div class="stat-val">${provider.charAt(0).toUpperCase()+provider.slice(1)}</div><div class="stat-lbl">Provider</div></div>
+        </div>
+        ${renderMetrics(data.metrics)}
+        <div class="report-wrap" id="report-content">${mdToHtml(data.report)}</div>
+        <button class="btn-dl" onclick="downloadReport()">📥 Download Report (.md)</button>`;
       window._lastReport=data.report;window._lastTopic=topic;
     }
-  }catch(e){clearInterval(timer);document.getElementById("result-area").innerHTML=`<div class="error-box">❌ Network error: ${e.message}</div>`;}
+  } catch(e){
+    clearInterval(timer);
+    document.getElementById("result-area").innerHTML=`<div class="error-box">❌ ${e.message}</div>`;
+  }
   btn.disabled=false;btn.textContent="🚀 Generate Research Report";
 }
-function downloadReport(){const blob=new Blob([window._lastReport||""],{type:"text/markdown"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=(window._lastTopic||"report").replace(/\s+/g,"_")+".md";a.click();}
-document.getElementById("topic").addEventListener("keydown",e=>{if(e.key==="Enter")generateReport();});
+function downloadReport(){
+  if(!window._lastReport)return;
+  const blob=new Blob([window._lastReport],{type:"text/markdown"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download=(window._lastTopic||"report").replace(/\s+/g,"-").toLowerCase()+".md";
+  a.click();
+}
 </script>
 </body>
 </html>
