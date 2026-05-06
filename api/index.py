@@ -57,6 +57,59 @@ def fetch_page(url: str):
     except: return None
 
 
+def compute_metrics(report: str, sources: list) -> dict:
+    """
+    Compute FC, CP, HR metrics for the generated report.
+
+    Factual Consistency (FC) = S_supported / S_total
+    Citation Precision  (CP) = C_correct / (C_correct + C_incorrect)
+    Hallucination Rate  (HR) = S_unsupported / S_total
+    """
+    # Build a combined corpus from all sources for support checking
+    corpus = " ".join(s.get("content", "") for s in sources).lower()
+    source_urls = {s["url"] for s in sources}
+
+    # Split report into sentences (simple split on . ? !)
+    sentences = [s.strip() for s in re.split(r'(?<=[.?!])\s+', report) if len(s.strip()) > 20]
+    S_total = max(len(sentences), 1)
+
+    S_supported = 0
+    for sent in sentences:
+        # A sentence is "supported" if at least 3 meaningful words from it appear in corpus
+        words = [w.lower() for w in re.findall(r'\b[a-z]{4,}\b', sent)]
+        matches = sum(1 for w in words if w in corpus)
+        if matches >= 3:
+            S_supported += 1
+
+    S_unsupported = S_total - S_supported
+
+    # Citation precision: extract all [N] citations from report
+    cited_nums = re.findall(r'\[(\d+)\]', report)
+    C_correct = 0
+    C_incorrect = 0
+    for num in cited_nums:
+        idx = int(num) - 1
+        if 0 <= idx < len(sources):
+            C_correct += 1
+        else:
+            C_incorrect += 1
+
+    C_total = C_correct + C_incorrect
+    CP = round(C_correct / C_total, 4) if C_total > 0 else 1.0
+    FC = round(S_supported / S_total, 4)
+    HR = round(S_unsupported / S_total, 4)
+
+    return {
+        "factual_consistency": FC,
+        "citation_precision": CP,
+        "hallucination_rate": HR,
+        "sentences_total": S_total,
+        "sentences_supported": S_supported,
+        "citations_correct": C_correct,
+        "citations_incorrect": C_incorrect,
+    }
+
+
 def run_research(topic: str, provider: str) -> dict:
     # Node 1: Planner
     plan_prompt = f"""Generate 8 diverse and specific search queries to thoroughly research: "{topic}"
@@ -123,7 +176,15 @@ Your tasks:
 
     report = get_llm_response(review_prompt, provider)
 
-    return {"report": report, "sources": sources, "word_count": len(report.split())}
+    # Node 4: Metrics
+    metrics = compute_metrics(report, sources)
+
+    return {
+        "report": report,
+        "sources": sources,
+        "word_count": len(report.split()),
+        "metrics": metrics,
+    }
 
 
 class handler(BaseHTTPRequestHandler):
