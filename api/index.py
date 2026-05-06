@@ -9,8 +9,8 @@ def get_llm_response(prompt: str, provider: str) -> str:
 
     model_map = {
         "gemini": "llama-3.3-70b-versatile",
-        "groq":   "llama-3.1-8b-instant",
-        "claude": "qwen-qwq-32b",  
+        "groq":   "llama-3.3-70b-versatile",
+        "claude": "qwen-qwq-32b",
     }
     model = model_map.get(provider, "llama-3.3-70b-versatile")
 
